@@ -4,6 +4,11 @@ use triton::FutharkContext;
 
 const MAX_LEN: usize = 128;
 
+pub enum Selector {
+    BusId(u32),
+    Default,
+}
+
 #[derive(Debug, Clone)]
 pub enum ClError {
     DeviceNotFound,
@@ -109,18 +114,23 @@ fn create_queue(
     }
 }
 
-pub fn get_context_by_bus_id(id: u32) -> ClResult<FutharkContext> {
+pub fn get_context(selector: Selector) -> ClResult<FutharkContext> {
     unsafe {
-        let device = get_device_by_bus_id(id)?;
-        let context = create_context(device)?;
-        let queue = create_queue(context, device)?;
+        match selector {
+            Selector::BusId(bus_id) => {
+                let device = get_device_by_bus_id(bus_id)?;
+                let context = create_context(device)?;
+                let queue = create_queue(context, device)?;
 
-        let ctx_config = bindings::futhark_context_config_new();
-        let ctx = bindings::futhark_context_new_with_command_queue(ctx_config, queue);
-        Ok(FutharkContext {
-            context: ctx,
-            config: ctx_config,
-        })
+                let ctx_config = bindings::futhark_context_config_new();
+                let ctx = bindings::futhark_context_new_with_command_queue(ctx_config, queue);
+                Ok(FutharkContext {
+                    context: ctx,
+                    config: ctx_config,
+                })
+            }
+            Selector::Default => Ok(FutharkContext::new()),
+        }
     }
 }
 
