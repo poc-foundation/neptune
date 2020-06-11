@@ -72,25 +72,28 @@ fn get_bus_id(device: bindings::cl_device_id) -> ClResult<u32> {
 }
 
 fn get_device_by_bus_id(bus_id: u32) -> ClResult<bindings::cl_device_id> {
-    for platform in get_platforms()? {
-        for dev in get_devices(platform)? {
-            if get_bus_id(dev)? == bus_id {
-                return Ok(dev);
-            }
+    for dev in all_devices()? {
+        if get_bus_id(dev)? == bus_id {
+            return Ok(dev);
         }
     }
 
     Err(ClError::DeviceNotFound)
 }
 
-fn get_first_device() -> ClResult<bindings::cl_device_id> {
+fn all_devices() -> ClResult<Vec<bindings::cl_device_id>> {
+    let mut devs = Vec::new();
     for platform in get_platforms()? {
         for dev in get_devices(platform)? {
-            return Ok(dev);
+            devs.push(dev);
         }
     }
+    Ok(devs)
+}
 
-    Err(ClError::DeviceNotFound)
+fn get_first_device() -> ClResult<bindings::cl_device_id> {
+    let devs = all_devices()?;
+    devs.first().map(|d| *d).ok_or(ClError::DeviceNotFound)
 }
 
 fn create_context(device: bindings::cl_device_id) -> ClResult<bindings::cl_context> {
