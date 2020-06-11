@@ -1,3 +1,4 @@
+use crate::cl::Selector;
 use crate::error::Error;
 use crate::poseidon::SimplePoseidonBatchHasher;
 use crate::{Arity, BatchHasher, Strength, DEFAULT_STRENGTH};
@@ -7,7 +8,7 @@ use std::marker::PhantomData;
 
 #[derive(Clone, Copy, Debug)]
 pub enum BatcherType {
-    GPU,
+    GPU(Selector),
     CPU,
 }
 
@@ -19,7 +20,7 @@ where
     A: Arity<Fr>,
 {
     #[cfg(not(target_os = "macos"))]
-    GPU(GPUBatchHasher<'a, A>),
+    GPU(GPUBatchHasher<A>),
     #[cfg(target_os = "macos")]
     GPU(NoGPUBatchHasher<A>),
     CPU(SimplePoseidonBatchHasher<'a, A>),
@@ -31,7 +32,7 @@ where
 {
     pub(crate) fn t(&self) -> BatcherType {
         match self {
-            Batcher::GPU(_) => BatcherType::GPU,
+            Batcher::GPU(_) => BatcherType::GPU(Selector::Default),
             Batcher::CPU(_) => BatcherType::CPU,
         }
     }
@@ -47,9 +48,10 @@ where
     ) -> Result<Self, Error> {
         match t {
             #[cfg(all(feature = "gpu", target_os = "macos"))]
-            BatcherType::GPU => panic!("GPU unimplemented on macos"),
+            BatcherType::GPU(_) => panic!("GPU unimplemented on macos"),
             #[cfg(all(feature = "gpu", not(target_os = "macos")))]
-            BatcherType::GPU => Ok(Batcher::GPU(GPUBatchHasher::<A>::new_with_strength(
+            BatcherType::GPU(selector) => Ok(Batcher::GPU(GPUBatchHasher::<A>::new_with_strength(
+                *selector,
                 strength,
                 max_batch_size,
             )?)),

@@ -4,6 +4,7 @@ use triton::FutharkContext;
 
 const MAX_LEN: usize = 128;
 
+#[derive(Debug, Clone, Copy)]
 pub enum Selector {
     BusId(u32),
     Default,
@@ -82,6 +83,16 @@ fn get_device_by_bus_id(bus_id: u32) -> ClResult<bindings::cl_device_id> {
     Err(ClError::DeviceNotFound)
 }
 
+fn get_first_device() -> ClResult<bindings::cl_device_id> {
+    for platform in get_platforms()? {
+        for dev in get_devices(platform)? {
+            return Ok(dev);
+        }
+    }
+
+    Err(ClError::DeviceNotFound)
+}
+
 fn create_context(device: bindings::cl_device_id) -> ClResult<bindings::cl_context> {
     let mut res = 0i32;
     let context = unsafe {
@@ -114,23 +125,27 @@ fn create_queue(
     }
 }
 
-pub fn get_context(selector: Selector) -> ClResult<FutharkContext> {
-    unsafe {
-        match selector {
-            Selector::BusId(bus_id) => {
-                let device = get_device_by_bus_id(bus_id)?;
-                let context = create_context(device)?;
-                let queue = create_queue(context, device)?;
-
-                let ctx_config = bindings::futhark_context_config_new();
-                let ctx = bindings::futhark_context_new_with_command_queue(ctx_config, queue);
-                Ok(FutharkContext {
-                    context: ctx,
-                    config: ctx_config,
-                })
-            }
-            Selector::Default => Ok(FutharkContext::new()),
+impl Selector {
+    pub fn get_bus_id(&self) -> ClResult<u32> {
+        match self {
+            Selector::BusId(bus_id) => Ok(*bus_id),
+            Selector::Default => Ok(get_bus_id(get_first_device()?)?),
         }
+    }
+}
+
+pub fn get_context(bus_id: u32) -> ClResult<FutharkContext> {
+    unsafe {
+        let device = get_device_by_bus_id(bus_id)?;
+        let context = create_context(device)?;
+        let queue = create_queue(context, device)?;
+
+        let ctx_config = bindings::futhark_context_config_new();
+        let ctx = bindings::futhark_context_new_with_command_queue(ctx_config, queue);
+        Ok(FutharkContext {
+            context: ctx,
+            config: ctx_config,
+        })
     }
 }
 

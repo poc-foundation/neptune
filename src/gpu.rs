@@ -1,11 +1,13 @@
+use crate::cl;
 use crate::error::Error;
 use crate::poseidon::PoseidonConstants;
 use crate::{Arity, BatchHasher, Strength, DEFAULT_STRENGTH};
 use ff::{PrimeField, PrimeFieldDecodingError};
 use generic_array::{typenum, ArrayLength, GenericArray};
 use paired::bls12_381::{Bls12, Fr, FrRepr};
+use std::collections::HashMap;
 use std::marker::PhantomData;
-use std::sync::Mutex;
+use std::sync::{Arc, Mutex};
 use triton::FutharkContext;
 use triton::{Array_u64_1d, Array_u64_2d, Array_u64_3d};
 use typenum::{U11, U2, U8};
@@ -22,7 +24,8 @@ type S11State = triton::FutharkOpaqueS11State;
 pub(crate) type T864MState = triton::FutharkOpaqueT864MState;
 
 lazy_static! {
-    pub static ref FUTHARK_CONTEXT: Mutex<FutharkContext> = Mutex::new(FutharkContext::new());
+    pub static ref FUTHARK_CONTEXT_MAP: Mutex<HashMap<u32, Arc<Mutex<FutharkContext>>>> =
+        Mutex::new(HashMap::new());
 }
 
 /// Container to hold the state corresponding to each supported arity.
@@ -38,11 +41,11 @@ enum BatcherState {
 impl BatcherState {
     /// Create a new state for use in batch hashing preimages of `Arity` elements.
     /// State is an opaque pointer supplied to the corresponding GPU entry point when processing a batch.
-    fn new<A: Arity<Fr>>(ctx: &Mutex<FutharkContext>) -> Result<Self, Error> {
+    fn new<A: Arity<Fr>>(ctx: Arc<Mutex<FutharkContext>>) -> Result<Self, Error> {
         Self::new_with_strength::<A>(ctx, DEFAULT_STRENGTH)
     }
     fn new_with_strength<A: Arity<Fr>>(
-        ctx: &Mutex<FutharkContext>,
+        ctx: Arc<Mutex<FutharkContext>>,
         strength: Strength,
     ) -> Result<Self, Error> {
         let mut ctx = ctx.lock().unwrap();
@@ -93,8 +96,8 @@ impl BatcherState {
 }
 
 /// `GPUBatchHasher` implements `BatchHasher` and performs the batched hashing on GPU.
-pub struct GPUBatchHasher<'a, A> {
-    ctx: &'a Mutex<FutharkContext>,
+pub struct GPUBatchHasher<A> {
+    ctx: Arc<Mutex<FutharkContext>>,
     state: BatcherState,
     /// If `tree_builder_state` is provided, use it to build the final 64MiB tree on the GPU with one call.
     tree_builder_state: Option<T864MState>,
@@ -102,24 +105,34 @@ pub struct GPUBatchHasher<'a, A> {
     _a: PhantomData<A>,
 }
 
-impl<A> GPUBatchHasher<'_, A>
+impl<A> GPUBatchHasher<A>
 where
     A: Arity<Fr>,
 {
     /// Create a new `GPUBatchHasher` and initialize it with state corresponding with its `A`.
-    pub(crate) fn new(max_batch_size: usize) -> Result<Self, Error> {
-        Self::new_with_strength(DEFAULT_STRENGTH, max_batch_size)
+    pub(crate) fn new(selector: cl::Selector, max_batch_size: usize) -> Result<Self, Error> {
+        Self::new_with_strength(selector, DEFAULT_STRENGTH, max_batch_size)
     }
 
     /// Create a new `GPUBatchHasher` and initialize it with state corresponding with its `A`.
     pub(crate) fn new_with_strength(
+        selector: cl::Selector,
         strength: Strength,
         max_batch_size: usize,
     ) -> Result<Self, Error> {
-        let ctx = &*FUTHARK_CONTEXT;
+        let ctx = {
+            let mut map = FUTHARK_CONTEXT_MAP.lock().unwrap();
+            let bus_id = selector.get_bus_id().unwrap();
+            if !map.contains_key(&bus_id) {
+                let context = cl::get_context(bus_id).unwrap();
+                map.insert(bus_id, Arc::new(Mutex::new(context)));
+            }
+            Arc::clone(&map[&bus_id])
+        };
+
         Ok(Self {
-            ctx,
-            state: BatcherState::new_with_strength::<A>(ctx, strength)?,
+            ctx: Arc::clone(&ctx),
+            state: BatcherState::new_with_strength::<A>(Arc::clone(&ctx), strength)?,
             tree_builder_state: None,
             max_batch_size,
             _a: PhantomData::<A>,
@@ -127,7 +140,7 @@ where
     }
 }
 
-impl<A> Drop for GPUBatchHasher<'_, A> {
+impl<A> Drop for GPUBatchHasher<A> {
     fn drop(&mut self) {
         let ctx = self.ctx.lock().unwrap();
         unsafe {
@@ -136,7 +149,7 @@ impl<A> Drop for GPUBatchHasher<'_, A> {
     }
 }
 
-impl<A> BatchHasher<A> for GPUBatchHasher<'_, A>
+impl<A> BatchHasher<A> for GPUBatchHasher<A>
 where
     A: Arity<Fr>,
 {
