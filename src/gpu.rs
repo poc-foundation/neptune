@@ -621,8 +621,12 @@ mod tests {
             };
         let batch_size = 100;
 
-        let mut gpu_hasher =
-            GPUBatchHasher::<U2>::new_with_strength(cl::GPUSelector::Default, Strength::Standard, batch_size).unwrap();
+        let mut gpu_hasher = GPUBatchHasher::<U2>::new_with_strength(
+            cl::GPUSelector::Default,
+            Strength::Standard,
+            batch_size,
+        )
+        .unwrap();
         let mut simple_hasher =
             SimplePoseidonBatchHasher::<U2>::new_with_strength(Strength::Standard, batch_size)
                 .unwrap();
@@ -652,8 +656,12 @@ mod tests {
         };
         let batch_size = 100;
 
-        let mut gpu_hasher =
-            GPUBatchHasher::<U2>::new_with_strength(cl::GPUSelector::Default, Strength::Strengthened, batch_size).unwrap();
+        let mut gpu_hasher = GPUBatchHasher::<U2>::new_with_strength(
+            cl::GPUSelector::Default,
+            Strength::Strengthened,
+            batch_size,
+        )
+        .unwrap();
         let mut simple_hasher =
             SimplePoseidonBatchHasher::<U2>::new_with_strength(Strength::Strengthened, batch_size)
                 .unwrap();
@@ -682,8 +690,12 @@ mod tests {
             };
         let batch_size = 100;
 
-        let mut gpu_hasher =
-            GPUBatchHasher::<U8>::new_with_strength(cl::GPUSelector::Default, Strength::Standard, batch_size).unwrap();
+        let mut gpu_hasher = GPUBatchHasher::<U8>::new_with_strength(
+            cl::GPUSelector::Default,
+            Strength::Standard,
+            batch_size,
+        )
+        .unwrap();
         let mut simple_hasher =
             SimplePoseidonBatchHasher::<U8>::new_with_strength(Strength::Standard, batch_size)
                 .unwrap();
@@ -713,8 +725,12 @@ mod tests {
         };
         let batch_size = 100;
 
-        let mut gpu_hasher =
-            GPUBatchHasher::<U8>::new_with_strength(cl::GPUSelector::Default, Strength::Strengthened, batch_size).unwrap();
+        let mut gpu_hasher = GPUBatchHasher::<U8>::new_with_strength(
+            cl::GPUSelector::Default,
+            Strength::Strengthened,
+            batch_size,
+        )
+        .unwrap();
         let mut simple_hasher =
             SimplePoseidonBatchHasher::<U8>::new_with_strength(Strength::Strengthened, batch_size)
                 .unwrap();
@@ -743,8 +759,12 @@ mod tests {
             };
         let batch_size = 100;
 
-        let mut gpu_hasher =
-            GPUBatchHasher::<U11>::new_with_strength(cl::GPUSelector::Default, Strength::Standard, batch_size).unwrap();
+        let mut gpu_hasher = GPUBatchHasher::<U11>::new_with_strength(
+            cl::GPUSelector::Default,
+            Strength::Standard,
+            batch_size,
+        )
+        .unwrap();
         let mut simple_hasher =
             SimplePoseidonBatchHasher::<U11>::new_with_strength(Strength::Standard, batch_size)
                 .unwrap();
@@ -774,8 +794,12 @@ mod tests {
         };
         let batch_size = 100;
 
-        let mut gpu_hasher =
-            GPUBatchHasher::<U11>::new_with_strength(cl::GPUSelector::Default, Strength::Strengthened, batch_size).unwrap();
+        let mut gpu_hasher = GPUBatchHasher::<U11>::new_with_strength(
+            cl::GPUSelector::Default,
+            Strength::Strengthened,
+            batch_size,
+        )
+        .unwrap();
         let mut simple_hasher =
             SimplePoseidonBatchHasher::<U11>::new_with_strength(Strength::Strengthened, batch_size)
                 .unwrap();

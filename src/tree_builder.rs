@@ -1,8 +1,8 @@
 use crate::batch_hasher::{Batcher, BatcherType};
+use crate::cl::GPUSelector;
 use crate::error::Error;
 use crate::poseidon::{Poseidon, PoseidonConstants};
 use crate::{Arity, BatchHasher};
-use crate::cl::GPUSelector;
 use ff::Field;
 use generic_array::GenericArray;
 use paired::bls12_381::{Bls12, Fr};
@@ -260,7 +260,13 @@ mod tests {
         test_tree_builder_aux(Some(BatcherType::CPU), 512, 32, 512, 512);
 
         #[cfg(all(feature = "gpu", not(target_os = "macos")))]
-        test_tree_builder_aux(Some(BatcherType::GPU(GPUSelector::Default)), 512, 32, 512, 512);
+        test_tree_builder_aux(
+            Some(BatcherType::GPU(GPUSelector::Default)),
+            512,
+            32,
+            512,
+            512,
+        );
     }
 
     fn test_tree_builder_aux(
