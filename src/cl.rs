@@ -5,7 +5,7 @@ use triton::FutharkContext;
 const MAX_LEN: usize = 128;
 
 #[derive(Debug, Clone, Copy)]
-pub enum Selector {
+pub enum GPUSelector {
     BusId(u32),
     Default,
 }
@@ -125,11 +125,11 @@ fn create_queue(
     }
 }
 
-impl Selector {
+impl GPUSelector {
     pub fn get_bus_id(&self) -> ClResult<u32> {
         match self {
-            Selector::BusId(bus_id) => Ok(*bus_id),
-            Selector::Default => Ok(get_bus_id(get_first_device()?)?),
+            GPUSelector::BusId(bus_id) => Ok(*bus_id),
+            GPUSelector::Default => Ok(get_bus_id(get_first_device()?)?),
         }
     }
 }

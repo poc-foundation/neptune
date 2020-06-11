@@ -110,13 +110,13 @@ where
     A: Arity<Fr>,
 {
     /// Create a new `GPUBatchHasher` and initialize it with state corresponding with its `A`.
-    pub(crate) fn new(selector: cl::Selector, max_batch_size: usize) -> Result<Self, Error> {
+    pub(crate) fn new(selector: cl::GPUSelector, max_batch_size: usize) -> Result<Self, Error> {
         Self::new_with_strength(selector, DEFAULT_STRENGTH, max_batch_size)
     }
 
     /// Create a new `GPUBatchHasher` and initialize it with state corresponding with its `A`.
     pub(crate) fn new_with_strength(
-        selector: cl::Selector,
+        selector: cl::GPUSelector,
         strength: Strength,
         max_batch_size: usize,
     ) -> Result<Self, Error> {

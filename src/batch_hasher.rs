@@ -1,4 +1,4 @@
-use crate::cl::Selector;
+use crate::cl::GPUSelector;
 use crate::error::Error;
 use crate::poseidon::SimplePoseidonBatchHasher;
 use crate::{Arity, BatchHasher, Strength, DEFAULT_STRENGTH};
@@ -8,7 +8,7 @@ use std::marker::PhantomData;
 
 #[derive(Clone, Copy, Debug)]
 pub enum BatcherType {
-    GPU(Selector),
+    GPU(GPUSelector),
     CPU,
 }
 
@@ -32,7 +32,7 @@ where
 {
     pub(crate) fn t(&self) -> BatcherType {
         match self {
-            Batcher::GPU(_) => BatcherType::GPU(Selector::Default),
+            Batcher::GPU(_) => BatcherType::GPU(GPUSelector::Default),
             Batcher::CPU(_) => BatcherType::CPU,
         }
     }
