@@ -8,7 +8,8 @@ use std::marker::PhantomData;
 
 #[derive(Clone, Copy, Debug)]
 pub enum BatcherType {
-    GPU(GPUSelector),
+    CustomGPU(GPUSelector),
+    GPU,
     CPU,
 }
 
@@ -32,7 +33,7 @@ where
 {
     pub(crate) fn t(&self) -> BatcherType {
         match self {
-            Batcher::GPU(_) => BatcherType::GPU(GPUSelector::Default),
+            Batcher::GPU(_) => BatcherType::GPU,
             Batcher::CPU(_) => BatcherType::CPU,
         }
     }
@@ -48,13 +49,19 @@ where
     ) -> Result<Self, Error> {
         match t {
             #[cfg(all(feature = "gpu", target_os = "macos"))]
-            BatcherType::GPU(_) => panic!("GPU unimplemented on macos"),
+            BatcherType::GPU => panic!("GPU unimplemented on macos"),
+            #[cfg(all(feature = "gpu", target_os = "macos"))]
+            BatcherType::CustomGPU(_) => panic!("GPU unimplemented on macos"),
             #[cfg(all(feature = "gpu", not(target_os = "macos")))]
-            BatcherType::GPU(selector) => Ok(Batcher::GPU(GPUBatchHasher::<A>::new_with_strength(
-                *selector,
+            BatcherType::GPU => Ok(Batcher::GPU(GPUBatchHasher::<A>::new_with_strength(
+                GPUSelector::Default,
                 strength,
                 max_batch_size,
             )?)),
+            #[cfg(all(feature = "gpu", not(target_os = "macos")))]
+            BatcherType::CustomGPU(selector) => Ok(Batcher::GPU(
+                GPUBatchHasher::<A>::new_with_strength(*selector, strength, max_batch_size)?,
+            )),
 
             BatcherType::CPU => Ok(Batcher::CPU(
                 SimplePoseidonBatchHasher::<A>::new_with_strength(strength, max_batch_size)?,
