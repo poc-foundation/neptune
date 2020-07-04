@@ -15,7 +15,7 @@ byteorder = "1"
 ff = { version = "0.2.1", package = "fff" }
 generic-array = "0.13.2"
 paired = "0.20.0"
-triton = { git = "https://github.com/poc-foundation/neptune-triton.git", branch = "add_device_option", package = "neptune-triton",  default-features=false, features=["opencl"], optional=true }
+triton = { git = "https://github.com/poc-foundation/neptune-triton.git", branch = "dev", package = "neptune-triton",  default-features=false, features=["opencl"], optional=true }
 
 [dev-dependencies]
 criterion = "0.3"
