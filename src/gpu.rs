@@ -21,8 +21,13 @@ type S11State = triton::FutharkOpaqueS11State;
 
 pub(crate) type T864MState = triton::FutharkOpaqueT864MState;
 
+const GPU_CORE_COUNT: usize = 3;
 lazy_static! {
-    pub static ref FUTHARK_CONTEXT: Mutex<FutharkContext> = Mutex::new(FutharkContext::new());
+    static ref FUTHARK_CONTEXT_NEXT_INDEX: Mutex<usize> = Mutex::new(0);
+    pub static ref FUTHARK_CONTEXT_0: Mutex<FutharkContext> = Mutex::new(FutharkContext::new());
+    pub static ref FUTHARK_CONTEXT_1: Mutex<FutharkContext> = Mutex::new(FutharkContext::new());
+    pub static ref FUTHARK_CONTEXT_2: Mutex<FutharkContext> = Mutex::new(FutharkContext::new());
+    pub static ref FUTHARK_CONTEXT_3: Mutex<FutharkContext> = Mutex::new(FutharkContext::new());
 }
 
 /// Container to hold the state corresponding to each supported arity.
@@ -116,7 +121,17 @@ where
         strength: Strength,
         max_batch_size: usize,
     ) -> Result<Self, Error> {
-        let ctx = &*FUTHARK_CONTEXT;
+        let mut next_index = FUTHARK_CONTEXT_NEXT_INDEX.lock().unwrap();
+        let index = *next_index % GPU_CORE_COUNT;
+        *next_index += 1;
+        let ctx: &Mutex<FutharkContext> = match index {
+            0 => &*FUTHARK_CONTEXT_0,
+            1 => &*FUTHARK_CONTEXT_1,
+            2 => &*FUTHARK_CONTEXT_2,
+            3 => &*FUTHARK_CONTEXT_3,
+            _ => &*FUTHARK_CONTEXT_0
+        };
+        println!("Using the {}/{} FUTHARK_CONTEXT", index, GPU_CORE_COUNT);
         Ok(Self {
             ctx,
             state: BatcherState::new_with_strength::<A>(ctx, strength)?,
