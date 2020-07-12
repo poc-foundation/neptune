@@ -16,3 +16,4 @@ generic-array = "0.13.2"
 log = "0.4.8"
 paired = "0.20.0"
 neptune = { path = "../", features=["gpu"] }
+rayon = "1.0.0"
