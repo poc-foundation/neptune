@@ -105,7 +105,7 @@ fn main() -> Result<(), Error> {
     info!("max column batch size: {}", max_column_batch_size);
     info!("max tree batch size: {}", max_tree_batch_size);
 
-    (0..2).into_par_iter().for_each(|i| {
+    (0..8).into_par_iter().for_each(|i| {
         info!("--> Run {}", i);
         bench_column_building(
             i,
