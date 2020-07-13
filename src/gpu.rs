@@ -9,6 +9,7 @@ use std::sync::Mutex;
 use triton::FutharkContext;
 use triton::{Array_u64_1d, Array_u64_2d, Array_u64_3d};
 use typenum::{U11, U2, U8};
+use std::env;
 
 /// Convenience type aliases for opaque pointers from the generated Futhark bindings.
 type P2State = triton::FutharkOpaqueP2State;
@@ -21,13 +22,25 @@ type S11State = triton::FutharkOpaqueS11State;
 
 pub(crate) type T864MState = triton::FutharkOpaqueT864MState;
 
-const GPU_CORE_COUNT: usize = 3;
+
 lazy_static! {
     static ref FUTHARK_CONTEXT_NEXT_INDEX: Mutex<usize> = Mutex::new(0);
     pub static ref FUTHARK_CONTEXT_0: Mutex<FutharkContext> = Mutex::new(FutharkContext::new());
     pub static ref FUTHARK_CONTEXT_1: Mutex<FutharkContext> = Mutex::new(FutharkContext::new());
     pub static ref FUTHARK_CONTEXT_2: Mutex<FutharkContext> = Mutex::new(FutharkContext::new());
     pub static ref FUTHARK_CONTEXT_3: Mutex<FutharkContext> = Mutex::new(FutharkContext::new());
+    pub static ref FUTHARK_CONTEXT_4: Mutex<FutharkContext> = Mutex::new(FutharkContext::new());
+    pub static ref FUTHARK_CONTEXT_5: Mutex<FutharkContext> = Mutex::new(FutharkContext::new());
+    pub static ref FUTHARK_CONTEXT_6: Mutex<FutharkContext> = Mutex::new(FutharkContext::new());
+    pub static ref FUTHARK_CONTEXT_7: Mutex<FutharkContext> = Mutex::new(FutharkContext::new());
+    pub static ref FUTHARK_CONTEXT_8: Mutex<FutharkContext> = Mutex::new(FutharkContext::new());
+    pub static ref FUTHARK_CONTEXT_9: Mutex<FutharkContext> = Mutex::new(FutharkContext::new());
+    pub static ref FUTHARK_CONTEXT_10: Mutex<FutharkContext> = Mutex::new(FutharkContext::new());
+    pub static ref FUTHARK_CONTEXT_11: Mutex<FutharkContext> = Mutex::new(FutharkContext::new());
+    pub static ref FUTHARK_CONTEXT_12: Mutex<FutharkContext> = Mutex::new(FutharkContext::new());
+    pub static ref FUTHARK_CONTEXT_13: Mutex<FutharkContext> = Mutex::new(FutharkContext::new());
+    pub static ref FUTHARK_CONTEXT_14: Mutex<FutharkContext> = Mutex::new(FutharkContext::new());
+    pub static ref FUTHARK_CONTEXT_15: Mutex<FutharkContext> = Mutex::new(FutharkContext::new());
 }
 
 /// Container to hold the state corresponding to each supported arity.
@@ -121,17 +134,44 @@ where
         strength: Strength,
         max_batch_size: usize,
     ) -> Result<Self, Error> {
+        let gpu_count = match env::var("GPU_COUNT") {
+            Ok(val) => {
+                match val.parse::<usize>() {
+                  Ok(n) => {
+                      println!("GPUBatchHasher find GPU_COUNT={} from env var", n);
+                      n
+                  },
+                  Err(_e) => 1,
+                }
+            },
+            Err(_e) => 1
+        };
+
+        let gpu_core_count = 2*gpu_count;
+
         let mut next_index = FUTHARK_CONTEXT_NEXT_INDEX.lock().unwrap();
-        let index = *next_index % GPU_CORE_COUNT;
+        let index = *next_index % gpu_core_count;
         *next_index += 1;
         let ctx: &Mutex<FutharkContext> = match index {
             0 => &*FUTHARK_CONTEXT_0,
             1 => &*FUTHARK_CONTEXT_1,
             2 => &*FUTHARK_CONTEXT_2,
             3 => &*FUTHARK_CONTEXT_3,
+            4 => &*FUTHARK_CONTEXT_4,
+            5 => &*FUTHARK_CONTEXT_5,
+            6 => &*FUTHARK_CONTEXT_6,
+            7 => &*FUTHARK_CONTEXT_7,
+            8 => &*FUTHARK_CONTEXT_8,
+            9 => &*FUTHARK_CONTEXT_9,
+            10 => &*FUTHARK_CONTEXT_10,
+            11 => &*FUTHARK_CONTEXT_11,
+            12 => &*FUTHARK_CONTEXT_12,
+            13 => &*FUTHARK_CONTEXT_13,
+            14 => &*FUTHARK_CONTEXT_14,
+            15 => &*FUTHARK_CONTEXT_15,
             _ => &*FUTHARK_CONTEXT_0
         };
-        println!("Using the {}/{} FUTHARK_CONTEXT", index, GPU_CORE_COUNT);
+        println!("Create GPUBatchHasher using the {}/{} FUTHARK_CONTEXT", index + 1, gpu_core_count);
         Ok(Self {
             ctx,
             state: BatcherState::new_with_strength::<A>(ctx, strength)?,
