@@ -72,7 +72,8 @@ where
         self.add_columns(columns)?;
 
         let (base, tree) = self.tree_builder.add_final_leaves(&self.data)?;
-        self.reset();
+        // Ning: we don't need this. we create a new one for every batch.
+        // self.reset();
 
         Ok((base, tree))
     }
