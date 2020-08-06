@@ -76,6 +76,8 @@ where
     fn max_batch_size(&self) -> usize {
         700000
     }
+
+    fn clear(&mut self) {}
 }
 
 // Round numbers for supported arities. Not all arities have been supplied.

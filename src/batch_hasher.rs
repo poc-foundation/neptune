@@ -19,7 +19,7 @@ where
     A: Arity<Fr>,
 {
     #[cfg(not(target_os = "macos"))]
-    GPU(GPUBatchHasher<'a, A>),
+    GPU(GPUBatchHasher<A>),
     #[cfg(target_os = "macos")]
     GPU(NoGPUBatchHasher<A>),
     CPU(SimplePoseidonBatchHasher<'a, A>),
@@ -76,6 +76,15 @@ where
         match self {
             Batcher::GPU(batcher) => batcher.max_batch_size(),
             Batcher::CPU(batcher) => batcher.max_batch_size(),
+        }
+    }
+
+    fn clear(&mut self) {
+        match self {
+            Batcher::GPU(batcher) => {
+                batcher.clear();
+            },
+            Batcher::CPU(_batcher) => {},
         }
     }
 }

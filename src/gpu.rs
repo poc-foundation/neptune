@@ -5,7 +5,6 @@ use ff::{PrimeField, PrimeFieldDecodingError};
 use generic_array::{typenum, ArrayLength, GenericArray};
 use paired::bls12_381::{Bls12, Fr, FrRepr};
 use std::marker::PhantomData;
-use std::sync::Mutex;
 use triton::FutharkContext;
 use triton::{Array_u64_1d, Array_u64_2d, Array_u64_3d};
 use typenum::{U11, U2, U8};
@@ -22,27 +21,6 @@ type S11State = triton::FutharkOpaqueS11State;
 
 pub(crate) type T864MState = triton::FutharkOpaqueT864MState;
 
-
-lazy_static! {
-    static ref FUTHARK_CONTEXT_NEXT_INDEX: Mutex<usize> = Mutex::new(0);
-    pub static ref FUTHARK_CONTEXT_0: Mutex<FutharkContext> = Mutex::new(FutharkContext::new());
-    pub static ref FUTHARK_CONTEXT_1: Mutex<FutharkContext> = Mutex::new(FutharkContext::new());
-    pub static ref FUTHARK_CONTEXT_2: Mutex<FutharkContext> = Mutex::new(FutharkContext::new());
-    pub static ref FUTHARK_CONTEXT_3: Mutex<FutharkContext> = Mutex::new(FutharkContext::new());
-    pub static ref FUTHARK_CONTEXT_4: Mutex<FutharkContext> = Mutex::new(FutharkContext::new());
-    pub static ref FUTHARK_CONTEXT_5: Mutex<FutharkContext> = Mutex::new(FutharkContext::new());
-    pub static ref FUTHARK_CONTEXT_6: Mutex<FutharkContext> = Mutex::new(FutharkContext::new());
-    pub static ref FUTHARK_CONTEXT_7: Mutex<FutharkContext> = Mutex::new(FutharkContext::new());
-    pub static ref FUTHARK_CONTEXT_8: Mutex<FutharkContext> = Mutex::new(FutharkContext::new());
-    pub static ref FUTHARK_CONTEXT_9: Mutex<FutharkContext> = Mutex::new(FutharkContext::new());
-    pub static ref FUTHARK_CONTEXT_10: Mutex<FutharkContext> = Mutex::new(FutharkContext::new());
-    pub static ref FUTHARK_CONTEXT_11: Mutex<FutharkContext> = Mutex::new(FutharkContext::new());
-    pub static ref FUTHARK_CONTEXT_12: Mutex<FutharkContext> = Mutex::new(FutharkContext::new());
-    pub static ref FUTHARK_CONTEXT_13: Mutex<FutharkContext> = Mutex::new(FutharkContext::new());
-    pub static ref FUTHARK_CONTEXT_14: Mutex<FutharkContext> = Mutex::new(FutharkContext::new());
-    pub static ref FUTHARK_CONTEXT_15: Mutex<FutharkContext> = Mutex::new(FutharkContext::new());
-}
-
 /// Container to hold the state corresponding to each supported arity.
 enum BatcherState {
     Arity2(P2State),
@@ -56,18 +34,17 @@ enum BatcherState {
 impl BatcherState {
     /// Create a new state for use in batch hashing preimages of `Arity` elements.
     /// State is an opaque pointer supplied to the corresponding GPU entry point when processing a batch.
-    fn new<A: Arity<Fr>>(ctx: &Mutex<FutharkContext>) -> Result<Self, Error> {
+    fn new<A: Arity<Fr>>(ctx: &mut FutharkContext) -> Result<Self, Error> {
         Self::new_with_strength::<A>(ctx, DEFAULT_STRENGTH)
     }
     fn new_with_strength<A: Arity<Fr>>(
-        ctx: &Mutex<FutharkContext>,
+        ctx: &mut FutharkContext,
         strength: Strength,
     ) -> Result<Self, Error> {
-        let mut ctx = ctx.lock().unwrap();
         Ok(match A::to_usize() {
-            size if size == 2 => init_hash2(&mut ctx, strength)?,
-            size if size == 8 => init_hash8(&mut ctx, strength)?,
-            size if size == 11 => init_hash11(&mut ctx, strength)?,
+            size if size == 2 => init_hash2(ctx, strength)?,
+            size if size == 8 => init_hash8(ctx, strength)?,
+            size if size == 11 => init_hash11(ctx, strength)?,
             _ => panic!("unsupported arity: {}", A::to_usize()),
         })
     }
@@ -111,8 +88,8 @@ impl BatcherState {
 }
 
 /// `GPUBatchHasher` implements `BatchHasher` and performs the batched hashing on GPU.
-pub struct GPUBatchHasher<'a, A> {
-    ctx: &'a Mutex<FutharkContext>,
+pub struct GPUBatchHasher<A> {
+    ctx: FutharkContext,
     state: BatcherState,
     /// If `tree_builder_state` is provided, use it to build the final 64MiB tree on the GPU with one call.
     tree_builder_state: Option<T864MState>,
@@ -120,7 +97,7 @@ pub struct GPUBatchHasher<'a, A> {
     _a: PhantomData<A>,
 }
 
-impl<A> GPUBatchHasher<'_, A>
+impl<A> GPUBatchHasher<A>
 where
     A: Arity<Fr>,
 {
@@ -134,47 +111,10 @@ where
         strength: Strength,
         max_batch_size: usize,
     ) -> Result<Self, Error> {
-        let gpu_count = match env::var("GPU_COUNT") {
-            Ok(val) => {
-                match val.parse::<usize>() {
-                  Ok(n) => {
-                      println!("GPUBatchHasher find GPU_COUNT={} from env var", n);
-                      n
-                  },
-                  Err(_e) => 1,
-                }
-            },
-            Err(_e) => 1
-        };
-
-        let gpu_core_count = 2*gpu_count;
-
-        let mut next_index = FUTHARK_CONTEXT_NEXT_INDEX.lock().unwrap();
-        let index = *next_index % gpu_core_count;
-        *next_index += 1;
-        let ctx: &Mutex<FutharkContext> = match index {
-            0 => &*FUTHARK_CONTEXT_0,
-            1 => &*FUTHARK_CONTEXT_1,
-            2 => &*FUTHARK_CONTEXT_2,
-            3 => &*FUTHARK_CONTEXT_3,
-            4 => &*FUTHARK_CONTEXT_4,
-            5 => &*FUTHARK_CONTEXT_5,
-            6 => &*FUTHARK_CONTEXT_6,
-            7 => &*FUTHARK_CONTEXT_7,
-            8 => &*FUTHARK_CONTEXT_8,
-            9 => &*FUTHARK_CONTEXT_9,
-            10 => &*FUTHARK_CONTEXT_10,
-            11 => &*FUTHARK_CONTEXT_11,
-            12 => &*FUTHARK_CONTEXT_12,
-            13 => &*FUTHARK_CONTEXT_13,
-            14 => &*FUTHARK_CONTEXT_14,
-            15 => &*FUTHARK_CONTEXT_15,
-            _ => &*FUTHARK_CONTEXT_0
-        };
-        println!("Create GPUBatchHasher using the {}/{} FUTHARK_CONTEXT", index + 1, gpu_core_count);
+        let mut ctx = FutharkContext::new();
         Ok(Self {
             ctx,
-            state: BatcherState::new_with_strength::<A>(ctx, strength)?,
+            state: BatcherState::new_with_strength::<A>(&mut ctx, strength)?,
             tree_builder_state: None,
             max_batch_size,
             _a: PhantomData::<A>,
@@ -182,30 +122,30 @@ where
     }
 }
 
-impl<A> Drop for GPUBatchHasher<'_, A> {
-    fn drop(&mut self) {
-        let ctx = self.ctx.lock().unwrap();
-        println!("GPUBatchHasher Drop");
-        unsafe {
-            triton::bindings::futhark_context_clear_caches(ctx.context);
-        }
-    }
-}
-
-impl<A> BatchHasher<A> for GPUBatchHasher<'_, A>
+impl<A> BatchHasher<A> for GPUBatchHasher<A>
 where
     A: Arity<Fr>,
 {
     /// Hash a batch of `A`-sized preimages.
     fn hash(&mut self, preimages: &[GenericArray<Fr, A>]) -> Result<Vec<Fr>, Error> {
-        let mut ctx = self.ctx.lock().unwrap();
-        let (res, state) = self.state.hash(&mut ctx, preimages)?;
+        let (res, state) = self.state.hash(&mut self.ctx, preimages)?; //FIXME
         self.state = state;
         Ok(res)
     }
 
     fn max_batch_size(&self) -> usize {
         self.max_batch_size
+    }
+
+    fn clear(&mut self) {
+        println!("GPUBatchHasher clear()");
+        unsafe {
+            triton::bindings::futhark_context_sync(self.ctx.context);
+            triton::bindings::futhark_context_clear_caches(self.ctx.context);
+            triton::bindings::futhark_context_sync(self.ctx.context);
+            triton::bindings::futhark_context_free(self.ctx.context);
+            triton::bindings::futhark_context_config_free(self.ctx.config);
+        }
     }
 }
 

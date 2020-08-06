@@ -71,6 +71,11 @@ where
     ) -> Result<(Vec<Fr>, Vec<Fr>), Error> {
         self.add_columns(columns)?;
 
+        if let Some(ref mut batcher) = self.column_batcher {
+            println!("ColumnTreeBuilder add_final_columns batcher.clear()");
+            batcher.clear();
+        }
+
         let (base, tree) = self.tree_builder.add_final_leaves(&self.data)?;
         // Ning: we don't need this. we create a new one for every batch.
         // self.reset();

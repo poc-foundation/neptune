@@ -55,6 +55,11 @@ where
         // Ning: we don't need this. we create a new one for every batch.
         // self.reset();
 
+        if let Some(ref mut batcher) = self.tree_batcher {
+            println!("TreeBuilder add_final_leaves drop batcher");
+            batcher.clear();
+        }
+
         res
     }
 
