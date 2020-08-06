@@ -174,8 +174,6 @@ where
         Box::new(move || {
             println!("GPUBatchHasher free futhark_context");
             unsafe {
-                triton::bindings::futhark_context_sync(context);
-                triton::bindings::futhark_context_clear_caches(context);
                 triton::bindings::futhark_context_free(context);
                 triton::bindings::futhark_context_config_free(config);
             }
