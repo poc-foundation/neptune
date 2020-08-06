@@ -151,7 +151,7 @@ where
                 Err(e) => {
                     tries -= 1;
                     let await_sec = time::Duration::from_secs(1 as u64);
-                    println!("error:{:?}, retrying in 1 secs, retries left: {:?}", e, tries);
+                    debug!("error:{:?}, retrying in 1 secs, retries left: {:?}", e, tries);
                     thread::sleep(await_sec);
                 }
                 Ok((res, state)) => {
