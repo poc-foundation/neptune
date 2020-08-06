@@ -56,8 +56,9 @@ where
         // self.reset();
 
         if let Some(ref mut batcher) = self.tree_batcher {
-            println!("TreeBuilder add_final_leaves drop batcher");
+            println!("TreeBuilder add_final_leaves batcher.clear()");
             batcher.clear();
+            self.tree_batcher.take();
         }
 
         res

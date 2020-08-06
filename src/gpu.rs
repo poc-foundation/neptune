@@ -172,7 +172,6 @@ where
         unsafe {
             triton::bindings::futhark_context_sync(self.ctx.context);
             triton::bindings::futhark_context_clear_caches(self.ctx.context);
-            triton::bindings::futhark_context_sync(self.ctx.context);
             triton::bindings::futhark_context_free(self.ctx.context);
             triton::bindings::futhark_context_config_free(self.ctx.config);
         }

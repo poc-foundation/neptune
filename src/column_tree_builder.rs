@@ -74,6 +74,7 @@ where
         if let Some(ref mut batcher) = self.column_batcher {
             println!("ColumnTreeBuilder add_final_columns batcher.clear()");
             batcher.clear();
+            self.column_batcher.take();
         }
 
         let (base, tree) = self.tree_builder.add_final_leaves(&self.data)?;

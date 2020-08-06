@@ -77,9 +77,6 @@ fn bench_column_building(
     let expected_root = builder.compute_uniform_tree_root(final_columns[0]).unwrap();
     let expected_size = builder.tree_size();
 
-    info!("[{}] drop builder", i);
-    drop(builder);
-
     assert_eq!(
         expected_size,
         res.len(),
