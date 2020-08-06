@@ -79,12 +79,10 @@ where
         }
     }
 
-    fn clear(&mut self) {
+    fn clear(&mut self) -> Box<dyn Fn() -> ()> {
         match self {
-            Batcher::GPU(batcher) => {
-                batcher.clear();
-            },
-            Batcher::CPU(_batcher) => {},
+            Batcher::GPU(batcher) => batcher.clear(),
+            Batcher::CPU(_batcher) => Box::new(||{}),
         }
     }
 }

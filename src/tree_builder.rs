@@ -56,9 +56,15 @@ where
         // self.reset();
 
         if let Some(ref mut batcher) = self.tree_batcher {
-            println!("TreeBuilder add_final_leaves batcher.clear()");
-            batcher.clear();
-            self.tree_batcher.take();
+            match batcher {
+                Batcher::GPU(batcher) => {
+                    println!("TreeBuilder add_final_leaves batcher.clear()");
+                    let clr = batcher.clear();
+                    self.tree_batcher.take();
+                    clr();
+                },
+                Batcher::CPU(_batcher) => {},
+            }
         }
 
         res

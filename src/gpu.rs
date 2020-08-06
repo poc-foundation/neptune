@@ -167,14 +167,19 @@ where
         self.max_batch_size
     }
 
-    fn clear(&mut self) {
-        println!("GPUBatchHasher clear()");
-        unsafe {
-            triton::bindings::futhark_context_sync(self.ctx.context);
-            triton::bindings::futhark_context_clear_caches(self.ctx.context);
-            triton::bindings::futhark_context_free(self.ctx.context);
-            triton::bindings::futhark_context_config_free(self.ctx.config);
-        }
+    fn clear(&mut self) -> Box<dyn Fn() -> ()> {
+        println!("Prepare GPUBatchHasher clear()");
+        let context = self.ctx.context;
+        let config = self.ctx.config;
+        Box::new(move || {
+            println!("GPUBatchHasher free futhark_context");
+            unsafe {
+                triton::bindings::futhark_context_sync(context);
+                triton::bindings::futhark_context_clear_caches(context);
+                triton::bindings::futhark_context_free(context);
+                triton::bindings::futhark_context_config_free(config);
+            }
+        })
     }
 }
 

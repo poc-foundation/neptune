@@ -77,7 +77,7 @@ where
         700000
     }
 
-    fn clear(&mut self) {}
+    fn clear(&mut self) -> Box<dyn Fn() -> ()> { Box::new(||{}) }
 }
 
 // Round numbers for supported arities. Not all arities have been supplied.
