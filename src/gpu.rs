@@ -10,6 +10,8 @@ use triton::FutharkContext;
 use triton::{Array_u64_1d, Array_u64_2d, Array_u64_3d};
 use typenum::{U11, U2, U8};
 use std::env;
+use std::{thread, time};
+use log::info;
 
 /// Convenience type aliases for opaque pointers from the generated Futhark bindings.
 type P2State = triton::FutharkOpaqueP2State;
@@ -117,6 +119,7 @@ pub struct GPUBatchHasher<'a, A> {
     /// If `tree_builder_state` is provided, use it to build the final 64MiB tree on the GPU with one call.
     tree_builder_state: Option<T864MState>,
     max_batch_size: usize,
+    hash_retry: usize,
     _a: PhantomData<A>,
 }
 
@@ -138,7 +141,7 @@ where
             Ok(val) => {
                 match val.parse::<usize>() {
                   Ok(n) => {
-                      println!("GPUBatchHasher find GPU_COUNT={} from env var", n);
+                      info!("GPUBatchHasher find GPU_COUNT={} from env var", n);
                       n
                   },
                   Err(_e) => 1,
@@ -171,12 +174,27 @@ where
             15 => &*FUTHARK_CONTEXT_15,
             _ => &*FUTHARK_CONTEXT_0
         };
-        println!("Create GPUBatchHasher using the {}/{} FUTHARK_CONTEXT", index + 1, gpu_core_count);
+        info!("Create GPUBatchHasher using the {}/{} FUTHARK_CONTEXT", index + 1, gpu_core_count);
+
+        let hash_retry = match env::var("P2_RETRY") {
+            Ok(val) => {
+                match val.parse::<usize>() {
+                  Ok(n) => {
+                      info!("GPUBatchHasher find P2_RETRY={} from env var", n);
+                      n
+                  },
+                  Err(_e) => 3600,
+                }
+            },
+            Err(_e) => 3600
+        };
+
         Ok(Self {
             ctx,
             state: BatcherState::new_with_strength::<A>(ctx, strength)?,
             tree_builder_state: None,
             max_batch_size,
+            hash_retry,
             _a: PhantomData::<A>,
         })
     }
@@ -184,26 +202,12 @@ where
 
 impl<A> Drop for GPUBatchHasher<'_, A> {
     fn drop(&mut self) {
-        let p2_no_free = match env::var("P2_NO_FREE") {
-            Ok(val) => {
-                match val.parse::<usize>() {
-                  Ok(n) => {
-                      n
-                  },
-                  Err(_e) => 1,
-                }
-            },
-            Err(_e) => 1
-        };
-
         let ctx = self.ctx.lock().unwrap();
-        if p2_no_free == 0 {
-            println!("GPUBatchHasher futhark_context_clear_caches");
-            unsafe {
-                triton::bindings::futhark_context_clear_caches(ctx.context);
-            }
-        } else {
-            println!("GPUBatchHasher no free futhark context");
+        unsafe {
+            let a = triton::bindings::futhark_context_sync(ctx.context);
+            info!("futhark_context_sync returns {}", a);
+            let b = triton::bindings::futhark_context_clear_caches(ctx.context);
+            info!("futhark_context_clear_caches returns {}", b);
         }
     }
 }
@@ -214,10 +218,26 @@ where
 {
     /// Hash a batch of `A`-sized preimages.
     fn hash(&mut self, preimages: &[GenericArray<Fr, A>]) -> Result<Vec<Fr>, Error> {
-        let mut ctx = self.ctx.lock().unwrap();
-        let (res, state) = self.state.hash(&mut ctx, preimages)?;
-        self.state = state;
-        Ok(res)
+        let mut tries = self.hash_retry;
+        while tries > 0 {
+            {
+                let mut ctx = self.ctx.lock().unwrap();
+                match self.state.hash(&mut ctx, preimages) {
+                    Err(e) => {
+                        info!("Retry: {:?}", e);
+                    }
+                    Ok((res, state)) => {
+                        self.state = state;
+                        return Ok(res);
+                    }
+                }
+            }
+            let await_sec = time::Duration::from_secs(5 as u64);
+            tries -= 1;
+            info!("Retrying in 5 secs, retries left: {:?}", tries);
+            thread::sleep(await_sec);
+        }
+        Err(Error::Other(format!("GPUBatchHasher errored after {:?} tries", self.hash_retry).to_string()))
     }
 
     fn max_batch_size(&self) -> usize {
