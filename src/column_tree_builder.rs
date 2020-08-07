@@ -6,6 +6,7 @@ use crate::{Arity, BatchHasher};
 use ff::Field;
 use generic_array::GenericArray;
 use paired::bls12_381::{Bls12, Fr};
+use log::info;
 
 pub trait ColumnTreeBuilderTrait<ColumnArity, TreeArity>
 where
@@ -70,6 +71,11 @@ where
         columns: &[GenericArray<Fr, ColumnArity>],
     ) -> Result<(Vec<Fr>, Vec<Fr>), Error> {
         self.add_columns(columns)?;
+
+        if let Some(_) = self.column_batcher {
+            info!("ColumnTreeBuilder.add_final_columns drop column_batcher early");
+            self.column_batcher.take();
+        }
 
         let (base, tree) = self.tree_builder.add_final_leaves(&self.data)?;
         // Ning: we don't need this. we create a new one for every batch.
