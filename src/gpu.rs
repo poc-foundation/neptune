@@ -184,10 +184,26 @@ where
 
 impl<A> Drop for GPUBatchHasher<'_, A> {
     fn drop(&mut self) {
+        let p2_no_free = match env::var("P2_NO_FREE") {
+            Ok(val) => {
+                match val.parse::<usize>() {
+                  Ok(n) => {
+                      n
+                  },
+                  Err(_e) => 1,
+                }
+            },
+            Err(_e) => 1
+        };
+
         let ctx = self.ctx.lock().unwrap();
-        println!("GPUBatchHasher Drop");
-        unsafe {
-            triton::bindings::futhark_context_clear_caches(ctx.context);
+        if p2_no_free == 0 {
+            println!("GPUBatchHasher futhark_context_clear_caches");
+            unsafe {
+                triton::bindings::futhark_context_clear_caches(ctx.context);
+            }
+        } else {
+            println!("GPUBatchHasher no free futhark context");
         }
     }
 }

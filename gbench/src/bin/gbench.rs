@@ -105,21 +105,18 @@ fn main() -> Result<(), Error> {
     info!("max column batch size: {}", max_column_batch_size);
     info!("max tree batch size: {}", max_tree_batch_size);
 
-    for j in 0..10000 {
-        info!("----> Iter {}", j);
-        rayon::scope(|_| {
-            (0..16).into_par_iter().for_each(|i| {
-                info!("--> Run {}", i);
-                bench_column_building(
-                    i,
-                    Some(BatcherType::GPU),
-                    leaves,
-                    max_column_batch_size,
-                    max_tree_batch_size,
-                );
-            });
+    rayon::scope(|_| {
+        (0..8).into_par_iter().for_each(|i| {
+            info!("--> Run {}", i);
+            bench_column_building(
+                i,
+                Some(BatcherType::GPU),
+                leaves,
+                max_column_batch_size,
+                max_tree_batch_size,
+            );
         });
-    }
+    });
     info!("end, please verify GPU memory goes to zero in next 15s.");
     // Leave time to verify GPU memory usage goes to zero before exiting.
     std::thread::sleep(std::time::Duration::from_millis(15000));
