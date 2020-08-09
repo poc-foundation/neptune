@@ -52,8 +52,7 @@ where
         self.add_leaves(leaves)?;
 
         let res = self.build_tree(self.rows_to_discard);
-        // Ning: we don't need this. we create a new one for every batch.
-        // self.reset();
+        self.reset();
 
         res
     }
