@@ -202,8 +202,10 @@ where
 
 impl<A> Drop for GPUBatchHasher<'_, A> {
     fn drop(&mut self) {
+        info!("GPUBatchHasher Drop");
         let ctx = self.ctx.lock().unwrap();
         unsafe {
+            info!("futhark_context_sync");
             let a = triton::bindings::futhark_context_sync(ctx.context);
             info!("futhark_context_sync returns {}", a);
             let b = triton::bindings::futhark_context_clear_caches(ctx.context);
