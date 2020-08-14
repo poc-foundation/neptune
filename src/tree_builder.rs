@@ -27,6 +27,8 @@ where
     tree_constants: PoseidonConstants<Bls12, TreeArity>,
     tree_batcher: Option<Batcher<'a, TreeArity>>,
     rows_to_discard: usize,
+    max_tree_batch_size: usize,
+    t: Option<BatcherType>,
 }
 
 impl<TreeArity> TreeBuilderTrait<TreeArity> for TreeBuilder<'_, TreeArity>
@@ -96,12 +98,10 @@ where
             data: vec![Fr::zero(); leaf_count],
             fill_index: 0,
             tree_constants: PoseidonConstants::<Bls12, TreeArity>::new(),
-            tree_batcher: if let Some(t) = &t {
-                Some(Batcher::<TreeArity>::new(t, max_tree_batch_size)?)
-            } else {
-                None
-            },
-            rows_to_discard,
+            tree_batcher: None,
+            rows_to_discard: rows_to_discard,
+            max_tree_batch_size: max_tree_batch_size,
+            t: t,
         };
 
         // Cannot discard the base row or the root.
@@ -125,6 +125,12 @@ where
 
         let (mut start, mut end) = (0, arity);
 
+
+        self.tree_batcher = if let Some(t) = &self.t {
+            Some(Batcher::<TreeArity>::new(t, self.max_tree_batch_size)?)
+        } else {
+            None
+        };
         match &mut self.tree_batcher {
             Some(batcher) => {
                 let max_batch_size = batcher.max_batch_size();

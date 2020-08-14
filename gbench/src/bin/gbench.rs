@@ -93,7 +93,7 @@ fn bench_column_building(
 fn main() -> Result<(), Error> {
     env_logger::init();
 
-    let kib = 512 * 1024; // 4GiB
+    let kib = 4 * 1024 * 1024; // 4GiB
                                // let kib = 1024 * 512; // 512MiB
     let bytes = kib * 1024;
     let leaves = bytes / 32;
