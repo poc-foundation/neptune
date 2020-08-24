@@ -43,6 +43,22 @@ lazy_static! {
     pub static ref FUTHARK_CONTEXT_13: Mutex<FutharkContext> = Mutex::new(FutharkContext::new());
     pub static ref FUTHARK_CONTEXT_14: Mutex<FutharkContext> = Mutex::new(FutharkContext::new());
     pub static ref FUTHARK_CONTEXT_15: Mutex<FutharkContext> = Mutex::new(FutharkContext::new());
+    pub static ref FUTHARK_CONTEXT_16: Mutex<FutharkContext> = Mutex::new(FutharkContext::new());
+    pub static ref FUTHARK_CONTEXT_17: Mutex<FutharkContext> = Mutex::new(FutharkContext::new());
+    pub static ref FUTHARK_CONTEXT_18: Mutex<FutharkContext> = Mutex::new(FutharkContext::new());
+    pub static ref FUTHARK_CONTEXT_19: Mutex<FutharkContext> = Mutex::new(FutharkContext::new());
+    pub static ref FUTHARK_CONTEXT_20: Mutex<FutharkContext> = Mutex::new(FutharkContext::new());
+    pub static ref FUTHARK_CONTEXT_21: Mutex<FutharkContext> = Mutex::new(FutharkContext::new());
+    pub static ref FUTHARK_CONTEXT_22: Mutex<FutharkContext> = Mutex::new(FutharkContext::new());
+    pub static ref FUTHARK_CONTEXT_23: Mutex<FutharkContext> = Mutex::new(FutharkContext::new());
+    pub static ref FUTHARK_CONTEXT_24: Mutex<FutharkContext> = Mutex::new(FutharkContext::new());
+    pub static ref FUTHARK_CONTEXT_25: Mutex<FutharkContext> = Mutex::new(FutharkContext::new());
+    pub static ref FUTHARK_CONTEXT_26: Mutex<FutharkContext> = Mutex::new(FutharkContext::new());
+    pub static ref FUTHARK_CONTEXT_27: Mutex<FutharkContext> = Mutex::new(FutharkContext::new());
+    pub static ref FUTHARK_CONTEXT_28: Mutex<FutharkContext> = Mutex::new(FutharkContext::new());
+    pub static ref FUTHARK_CONTEXT_29: Mutex<FutharkContext> = Mutex::new(FutharkContext::new());
+    pub static ref FUTHARK_CONTEXT_30: Mutex<FutharkContext> = Mutex::new(FutharkContext::new());
+    pub static ref FUTHARK_CONTEXT_31: Mutex<FutharkContext> = Mutex::new(FutharkContext::new());
 }
 
 /// Container to hold the state corresponding to each supported arity.
@@ -150,10 +166,11 @@ where
             Err(_e) => 1
         };
 
-        let gpu_core_count = 2*gpu_count;
+        // 4: Kernels per GPU.
+        let kernel_count = 4*gpu_count;
 
         let mut next_index = FUTHARK_CONTEXT_NEXT_INDEX.lock().unwrap();
-        let index = *next_index % gpu_core_count;
+        let index = *next_index % kernel_count;
         *next_index += 1;
         let ctx: &Mutex<FutharkContext> = match index {
             0 => &*FUTHARK_CONTEXT_0,
@@ -172,9 +189,25 @@ where
             13 => &*FUTHARK_CONTEXT_13,
             14 => &*FUTHARK_CONTEXT_14,
             15 => &*FUTHARK_CONTEXT_15,
+            16 => &*FUTHARK_CONTEXT_16,
+            17 => &*FUTHARK_CONTEXT_17,
+            18 => &*FUTHARK_CONTEXT_18,
+            19 => &*FUTHARK_CONTEXT_19,
+            20 => &*FUTHARK_CONTEXT_20,
+            21 => &*FUTHARK_CONTEXT_21,
+            22 => &*FUTHARK_CONTEXT_22,
+            23 => &*FUTHARK_CONTEXT_23,
+            24 => &*FUTHARK_CONTEXT_24,
+            25 => &*FUTHARK_CONTEXT_25,
+            26 => &*FUTHARK_CONTEXT_26,
+            27 => &*FUTHARK_CONTEXT_27,
+            28 => &*FUTHARK_CONTEXT_28,
+            29 => &*FUTHARK_CONTEXT_29,
+            30 => &*FUTHARK_CONTEXT_30,
+            31 => &*FUTHARK_CONTEXT_31,
             _ => &*FUTHARK_CONTEXT_0
         };
-        info!("Create GPUBatchHasher using the {}/{} FUTHARK_CONTEXT", index + 1, gpu_core_count);
+        info!("Create GPUBatchHasher using the {}/{} FUTHARK_CONTEXT", index + 1, kernel_count);
 
         let hash_retry = match env::var("P2_RETRY") {
             Ok(val) => {
