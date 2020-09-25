@@ -180,7 +180,7 @@ where
         };
 
         // 4: Kernels per GPU.
-        let kernel_count = kernel_per_gpu*gpu_count;
+        let kernel_count = std::cmp::min(kernel_per_gpu*gpu_count, 32);
 
         let mut next_index = FUTHARK_CONTEXT_NEXT_INDEX.lock().unwrap();
         let index = *next_index % kernel_count;
