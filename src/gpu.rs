@@ -165,9 +165,22 @@ where
             },
             Err(_e) => 1
         };
+        
+        let kernel_per_gpu = match env::var("KERNEL_PER_GPU") {
+            Ok(val) => {
+                match val.parse::<usize>() {
+                  Ok(n) => {
+                      info!("GPUBatchHasher find KERNEL_PER_GPU={} from env var", n);
+                      n
+                  },
+                  Err(_e) => 4,
+                }
+            },
+            Err(_e) => 4
+        };
 
         // 4: Kernels per GPU.
-        let kernel_count = 4*gpu_count;
+        let kernel_count = kernel_per_gpu*gpu_count;
 
         let mut next_index = FUTHARK_CONTEXT_NEXT_INDEX.lock().unwrap();
         let index = *next_index % kernel_count;
