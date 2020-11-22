@@ -31,38 +31,38 @@ pub(crate) type T864MState = triton::FutharkOpaqueT864MState;
 
 lazy_static! {
     static ref FUTHARK_CONTEXT_NEXT_INDEX: Mutex<usize> = Mutex::new(0);
-    pub static ref FUTHARK_CONTEXT_0: Mutex<FutharkContext> = Mutex::new(FutharkContext::new());
-    pub static ref FUTHARK_CONTEXT_1: Mutex<FutharkContext> = Mutex::new(FutharkContext::new());
-    pub static ref FUTHARK_CONTEXT_2: Mutex<FutharkContext> = Mutex::new(FutharkContext::new());
-    pub static ref FUTHARK_CONTEXT_3: Mutex<FutharkContext> = Mutex::new(FutharkContext::new());
-    pub static ref FUTHARK_CONTEXT_4: Mutex<FutharkContext> = Mutex::new(FutharkContext::new());
-    pub static ref FUTHARK_CONTEXT_5: Mutex<FutharkContext> = Mutex::new(FutharkContext::new());
-    pub static ref FUTHARK_CONTEXT_6: Mutex<FutharkContext> = Mutex::new(FutharkContext::new());
-    pub static ref FUTHARK_CONTEXT_7: Mutex<FutharkContext> = Mutex::new(FutharkContext::new());
-    pub static ref FUTHARK_CONTEXT_8: Mutex<FutharkContext> = Mutex::new(FutharkContext::new());
-    pub static ref FUTHARK_CONTEXT_9: Mutex<FutharkContext> = Mutex::new(FutharkContext::new());
-    pub static ref FUTHARK_CONTEXT_10: Mutex<FutharkContext> = Mutex::new(FutharkContext::new());
-    pub static ref FUTHARK_CONTEXT_11: Mutex<FutharkContext> = Mutex::new(FutharkContext::new());
-    pub static ref FUTHARK_CONTEXT_12: Mutex<FutharkContext> = Mutex::new(FutharkContext::new());
-    pub static ref FUTHARK_CONTEXT_13: Mutex<FutharkContext> = Mutex::new(FutharkContext::new());
-    pub static ref FUTHARK_CONTEXT_14: Mutex<FutharkContext> = Mutex::new(FutharkContext::new());
-    pub static ref FUTHARK_CONTEXT_15: Mutex<FutharkContext> = Mutex::new(FutharkContext::new());
-    pub static ref FUTHARK_CONTEXT_16: Mutex<FutharkContext> = Mutex::new(FutharkContext::new());
-    pub static ref FUTHARK_CONTEXT_17: Mutex<FutharkContext> = Mutex::new(FutharkContext::new());
-    pub static ref FUTHARK_CONTEXT_18: Mutex<FutharkContext> = Mutex::new(FutharkContext::new());
-    pub static ref FUTHARK_CONTEXT_19: Mutex<FutharkContext> = Mutex::new(FutharkContext::new());
-    pub static ref FUTHARK_CONTEXT_20: Mutex<FutharkContext> = Mutex::new(FutharkContext::new());
-    pub static ref FUTHARK_CONTEXT_21: Mutex<FutharkContext> = Mutex::new(FutharkContext::new());
-    pub static ref FUTHARK_CONTEXT_22: Mutex<FutharkContext> = Mutex::new(FutharkContext::new());
-    pub static ref FUTHARK_CONTEXT_23: Mutex<FutharkContext> = Mutex::new(FutharkContext::new());
-    pub static ref FUTHARK_CONTEXT_24: Mutex<FutharkContext> = Mutex::new(FutharkContext::new());
-    pub static ref FUTHARK_CONTEXT_25: Mutex<FutharkContext> = Mutex::new(FutharkContext::new());
-    pub static ref FUTHARK_CONTEXT_26: Mutex<FutharkContext> = Mutex::new(FutharkContext::new());
-    pub static ref FUTHARK_CONTEXT_27: Mutex<FutharkContext> = Mutex::new(FutharkContext::new());
-    pub static ref FUTHARK_CONTEXT_28: Mutex<FutharkContext> = Mutex::new(FutharkContext::new());
-    pub static ref FUTHARK_CONTEXT_29: Mutex<FutharkContext> = Mutex::new(FutharkContext::new());
-    pub static ref FUTHARK_CONTEXT_30: Mutex<FutharkContext> = Mutex::new(FutharkContext::new());
-    pub static ref FUTHARK_CONTEXT_31: Mutex<FutharkContext> = Mutex::new(FutharkContext::new());
+    pub static ref FUTHARK_CONTEXT_0: Mutex<FutharkContext> = Mutex::new(FutharkContext::new().unwrap());
+    pub static ref FUTHARK_CONTEXT_1: Mutex<FutharkContext> = Mutex::new(FutharkContext::new().unwrap());
+    pub static ref FUTHARK_CONTEXT_2: Mutex<FutharkContext> = Mutex::new(FutharkContext::new().unwrap());
+    pub static ref FUTHARK_CONTEXT_3: Mutex<FutharkContext> = Mutex::new(FutharkContext::new().unwrap());
+    pub static ref FUTHARK_CONTEXT_4: Mutex<FutharkContext> = Mutex::new(FutharkContext::new().unwrap());
+    pub static ref FUTHARK_CONTEXT_5: Mutex<FutharkContext> = Mutex::new(FutharkContext::new().unwrap());
+    pub static ref FUTHARK_CONTEXT_6: Mutex<FutharkContext> = Mutex::new(FutharkContext::new().unwrap());
+    pub static ref FUTHARK_CONTEXT_7: Mutex<FutharkContext> = Mutex::new(FutharkContext::new().unwrap());
+    pub static ref FUTHARK_CONTEXT_8: Mutex<FutharkContext> = Mutex::new(FutharkContext::new().unwrap());
+    pub static ref FUTHARK_CONTEXT_9: Mutex<FutharkContext> = Mutex::new(FutharkContext::new().unwrap());
+    pub static ref FUTHARK_CONTEXT_10: Mutex<FutharkContext> = Mutex::new(FutharkContext::new().unwrap());
+    pub static ref FUTHARK_CONTEXT_11: Mutex<FutharkContext> = Mutex::new(FutharkContext::new().unwrap());
+    pub static ref FUTHARK_CONTEXT_12: Mutex<FutharkContext> = Mutex::new(FutharkContext::new().unwrap());
+    pub static ref FUTHARK_CONTEXT_13: Mutex<FutharkContext> = Mutex::new(FutharkContext::new().unwrap());
+    pub static ref FUTHARK_CONTEXT_14: Mutex<FutharkContext> = Mutex::new(FutharkContext::new().unwrap());
+    pub static ref FUTHARK_CONTEXT_15: Mutex<FutharkContext> = Mutex::new(FutharkContext::new().unwrap());
+    pub static ref FUTHARK_CONTEXT_16: Mutex<FutharkContext> = Mutex::new(FutharkContext::new().unwrap());
+    pub static ref FUTHARK_CONTEXT_17: Mutex<FutharkContext> = Mutex::new(FutharkContext::new().unwrap());
+    pub static ref FUTHARK_CONTEXT_18: Mutex<FutharkContext> = Mutex::new(FutharkContext::new().unwrap());
+    pub static ref FUTHARK_CONTEXT_19: Mutex<FutharkContext> = Mutex::new(FutharkContext::new().unwrap());
+    pub static ref FUTHARK_CONTEXT_20: Mutex<FutharkContext> = Mutex::new(FutharkContext::new().unwrap());
+    pub static ref FUTHARK_CONTEXT_21: Mutex<FutharkContext> = Mutex::new(FutharkContext::new().unwrap());
+    pub static ref FUTHARK_CONTEXT_22: Mutex<FutharkContext> = Mutex::new(FutharkContext::new().unwrap());
+    pub static ref FUTHARK_CONTEXT_23: Mutex<FutharkContext> = Mutex::new(FutharkContext::new().unwrap());
+    pub static ref FUTHARK_CONTEXT_24: Mutex<FutharkContext> = Mutex::new(FutharkContext::new().unwrap());
+    pub static ref FUTHARK_CONTEXT_25: Mutex<FutharkContext> = Mutex::new(FutharkContext::new().unwrap());
+    pub static ref FUTHARK_CONTEXT_26: Mutex<FutharkContext> = Mutex::new(FutharkContext::new().unwrap());
+    pub static ref FUTHARK_CONTEXT_27: Mutex<FutharkContext> = Mutex::new(FutharkContext::new().unwrap());
+    pub static ref FUTHARK_CONTEXT_28: Mutex<FutharkContext> = Mutex::new(FutharkContext::new().unwrap());
+    pub static ref FUTHARK_CONTEXT_29: Mutex<FutharkContext> = Mutex::new(FutharkContext::new().unwrap());
+    pub static ref FUTHARK_CONTEXT_30: Mutex<FutharkContext> = Mutex::new(FutharkContext::new().unwrap());
+    pub static ref FUTHARK_CONTEXT_31: Mutex<FutharkContext> = Mutex::new(FutharkContext::new().unwrap());
 }
 
 /// Container to hold the state corresponding to each supported arity.
@@ -78,11 +78,11 @@ enum BatcherState {
 impl BatcherState {
     /// Create a new state for use in batch hashing preimages of `Arity` elements.
     /// State is an opaque pointer supplied to the corresponding GPU entry point when processing a batch.
-    fn new<A: Arity<Fr>>(ctx: Arc<Mutex<FutharkContext>>) -> Result<Self, Error> {
+    fn new<A: Arity<Fr>>(ctx: &Mutex<FutharkContext>) -> Result<Self, Error> {
         Self::new_with_strength::<A>(ctx, DEFAULT_STRENGTH)
     }
     fn new_with_strength<A: Arity<Fr>>(
-        ctx: Arc<Mutex<FutharkContext>>,
+        ctx: &Mutex<FutharkContext>,
         strength: Strength,
     ) -> Result<Self, Error> {
         let mut ctx = ctx.lock().unwrap();
@@ -133,8 +133,8 @@ impl BatcherState {
 }
 
 /// `GPUBatchHasher` implements `BatchHasher` and performs the batched hashing on GPU.
-pub struct GPUBatchHasher<A> {
-    ctx: Arc<Mutex<FutharkContext>>,
+pub struct GPUBatchHasher<'a, A> {
+    ctx: &'a Mutex<FutharkContext>,
     state: BatcherState,
     /// If `tree_builder_state` is provided, use it to build the final 64MiB tree on the GPU with one call.
     tree_builder_state: Option<T864MState>,
@@ -143,21 +143,19 @@ pub struct GPUBatchHasher<A> {
     _a: PhantomData<A>,
 }
 
-impl<A> GPUBatchHasher<A>
+impl<A> GPUBatchHasher<'_, A>
 where
     A: Arity<Fr>,
 {
     /// Create a new `GPUBatchHasher` and initialize it with state corresponding with its `A`.
     pub(crate) fn new(
-        ctx: Arc<Mutex<FutharkContext>>,
         max_batch_size: usize,
     ) -> Result<Self, Error> {
-        Self::new_with_strength(ctx, DEFAULT_STRENGTH, max_batch_size)
+        Self::new_with_strength(DEFAULT_STRENGTH, max_batch_size)
     }
 
     /// Create a new `GPUBatchHasher` and initialize it with state corresponding with its `A`.
     pub(crate) fn new_with_strength(
-        ctx: Arc<Mutex<FutharkContext>>,
         strength: Strength,
         max_batch_size: usize,
     ) -> Result<Self, Error> {
@@ -243,33 +241,23 @@ where
             Err(_e) => 3600
         };
 
-        Ok(Self {
-            ctx,
+        let new = Self {
+            ctx: ctx,
             state: BatcherState::new_with_strength::<A>(ctx, strength)?,
             tree_builder_state: None,
             max_batch_size,
             hash_retry,
             _a: PhantomData::<A>,
         };
-
-        let ptr = {
-            let ctx = ctx.lock().unwrap();
-            FutharkContextPointer(&*ctx)
-        };
-
-        let mut locked = BATCH_HASHERS.lock().unwrap();
-        let entry = (*locked).entry(ptr).or_default();
-        *entry += 1;
-
         Ok(new)
     }
 
-    pub(crate) fn futhark_context(&self) -> Arc<Mutex<FutharkContext>> {
-        self.ctx.clone()
+    pub(crate) fn futhark_context(&self) -> &Mutex<FutharkContext> {
+        self.ctx
     }
 }
 
-impl<A> Drop for GPUBatchHasher<A> {
+impl<A> Drop for GPUBatchHasher<'_, A> {
     fn drop(&mut self) {
         info!("GPUBatchHasher Drop");
         unsafe {
@@ -283,7 +271,7 @@ impl<A> Drop for GPUBatchHasher<A> {
     }
 }
 
-impl<A> BatchHasher<A> for GPUBatchHasher<A>
+impl<A> BatchHasher<A> for GPUBatchHasher<'_, A>
 where
     A: Arity<Fr>,
 {

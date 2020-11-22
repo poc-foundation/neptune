@@ -38,15 +38,15 @@ impl Debug for BatcherType {
 
 use crate::gpu::GPUBatchHasher;
 
-pub enum Batcher<A>
+pub enum Batcher<'a, A>
 where
     A: Arity<Fr>,
 {
-    GPU(GPUBatchHasher<A>),
+    GPU(GPUBatchHasher<'a, A>),
     CPU(SimplePoseidonBatchHasher<A>),
 }
 
-impl<A> Batcher<A>
+impl<A> Batcher<'_, A>
 where
     A: Arity<Fr>,
 {
@@ -69,14 +69,12 @@ where
         match t {
             #[cfg(feature = "gpu")]
             BatcherType::GPU => Ok(Batcher::GPU(GPUBatchHasher::<A>::new_with_strength(
-                cl::default_futhark_context()?,
                 strength,
                 max_batch_size,
             )?)),
             #[cfg(feature = "gpu")]
             BatcherType::CustomGPU(selector) => {
                 Ok(Batcher::GPU(GPUBatchHasher::<A>::new_with_strength(
-                    cl::futhark_context(*selector)?,
                     strength,
                     max_batch_size,
                 )?))
@@ -85,26 +83,17 @@ where
                 SimplePoseidonBatchHasher::<A>::new_with_strength(strength, max_batch_size)?,
             )),
             #[cfg(feature = "gpu")]
-            BatcherType::FromFutharkContext(futhark_context) => {
+            BatcherType::FromFutharkContext(_) => {
                 Ok(Batcher::GPU(GPUBatchHasher::<A>::new_with_strength(
-                    futhark_context.clone(),
                     strength,
                     max_batch_size,
                 )?))
             }
         }
     }
-
-    #[cfg(feature = "gpu")]
-    pub(crate) fn futhark_context(&self) -> Option<Arc<Mutex<FutharkContext>>> {
-        match self {
-            Batcher::GPU(b) => Some(b.futhark_context()),
-            _ => None,
-        }
-    }
 }
 
-impl<A> BatchHasher<A> for Batcher<A>
+impl<A> BatchHasher<A> for Batcher<'_, A>
 where
     A: Arity<Fr>,
 {
