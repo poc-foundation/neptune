@@ -3,6 +3,7 @@ use crate::error::Error;
 use crate::poseidon::{Poseidon, PoseidonConstants};
 use crate::tree_builder::{TreeBuilder, TreeBuilderTrait};
 use crate::{Arity, BatchHasher};
+use bellperson::bls::{Bls12, Fr};
 use ff::Field;
 use generic_array::GenericArray;
 use paired::bls12_381::{Bls12, Fr};
@@ -22,7 +23,7 @@ where
     fn reset(&mut self);
 }
 
-pub struct ColumnTreeBuilder<'a, ColumnArity, TreeArity>
+pub struct ColumnTreeBuilder<ColumnArity, TreeArity>
 where
     ColumnArity: Arity<Fr>,
     TreeArity: Arity<Fr>,
@@ -32,12 +33,12 @@ where
     /// Index of the first unfilled datum.
     fill_index: usize,
     column_constants: PoseidonConstants<Bls12, ColumnArity>,
-    pub column_batcher: Option<Batcher<'a, ColumnArity>>,
-    tree_builder: TreeBuilder<'a, TreeArity>,
+    pub column_batcher: Option<Batcher<ColumnArity>>,
+    tree_builder: TreeBuilder<TreeArity>,
 }
 
 impl<ColumnArity, TreeArity> ColumnTreeBuilderTrait<ColumnArity, TreeArity>
-    for ColumnTreeBuilder<'_, ColumnArity, TreeArity>
+    for ColumnTreeBuilder<ColumnArity, TreeArity>
 where
     ColumnArity: Arity<Fr>,
     TreeArity: Arity<Fr>,
@@ -106,7 +107,7 @@ fn as_generic_arrays<'a, A: Arity<Fr>>(vec: &'a [Fr]) -> &'a [GenericArray<Fr, A
     }
 }
 
-impl<ColumnArity, TreeArity> ColumnTreeBuilder<'_, ColumnArity, TreeArity>
+impl<ColumnArity, TreeArity> ColumnTreeBuilder<ColumnArity, TreeArity>
 where
     ColumnArity: Arity<Fr>,
     TreeArity: Arity<Fr>,
@@ -117,17 +118,33 @@ where
         max_column_batch_size: usize,
         max_tree_batch_size: usize,
     ) -> Result<Self, Error> {
+        let column_batcher = match &t {
+            Some(t) => Some(Batcher::<ColumnArity>::new(t, max_column_batch_size)?),
+            None => None,
+        };
+
+        let tree_builder = match {
+            match &column_batcher {
+                Some(b) => b.futhark_context(),
+                None => None,
+            }
+        } {
+            Some(ctx) => TreeBuilder::<TreeArity>::new(
+                Some(BatcherType::FromFutharkContext(ctx)),
+                leaf_count,
+                max_tree_batch_size,
+                0,
+            )?,
+            None => TreeBuilder::<TreeArity>::new(t, leaf_count, max_tree_batch_size, 0)?,
+        };
+
         let builder = Self {
             leaf_count,
             data: vec![Fr::zero(); leaf_count],
             fill_index: 0,
             column_constants: PoseidonConstants::<Bls12, ColumnArity>::new(),
-            column_batcher: if let Some(t) = &t {
-                Some(Batcher::<ColumnArity>::new(t, max_column_batch_size)?)
-            } else {
-                None
-            },
-            tree_builder: TreeBuilder::<TreeArity>::new(t, leaf_count, max_tree_batch_size, 0)?,
+            column_batcher,
+            tree_builder,
         };
 
         Ok(builder)
@@ -150,15 +167,16 @@ where
     }
 }
 
+#[cfg(all(feature = "gpu", not(target_os = "macos")))]
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::poseidon::Poseidon;
     use crate::BatchHasher;
+    use bellperson::bls::Fr;
     use ff::Field;
     use generic_array::sequence::GenericSequence;
     use generic_array::typenum::{U11, U8};
-    use paired::bls12_381::Fr;
 
     #[test]
     fn test_column_tree_builder() {
@@ -166,7 +184,7 @@ mod tests {
         test_column_tree_builder_aux(None, 512, 32, 512, 512);
         test_column_tree_builder_aux(Some(BatcherType::CPU), 512, 32, 512, 512);
 
-        #[cfg(all(feature = "gpu", not(target_os = "macos")))]
+        #[cfg(feature = "gpu")]
         test_column_tree_builder_aux(Some(BatcherType::GPU), 512, 32, 512, 512);
     }
 

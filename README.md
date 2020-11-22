@@ -23,17 +23,26 @@ Programming Language](https://futhark-lang.org/).
 
 At the time of the 1.0.0 release, Neptune on RTX 2080Ti GPU can build 8-ary Merkle trees for 4GiB of input in 16 seconds.
 
+## Environment variables
+
+ - `NEPTUNE_DEFAULT_GPU=<bus-id>` allows you to select the default GPU that tree-builder is going to run on given its bus-id.
+
+(Bus-id is a decimal integer that can be found through `nvidia-smi`, `rocm-smi`, `lspci` and etc.)
+
 ## Future Work
 
 The following are likely areas of future work:
 
-- Support for multiple GPUs.
-- Support domain separation tag.
-- Improve throughput (?) by using OpenCL directly.
+- [x] Support for multiple GPUs.
+- [x] Support domain separation tag.
+- [ ] Improve throughput (?) by using OpenCL directly.
 
 ## History
 
 Neptune was originally bootstrapped from [Dusk's reference implementation](https://github.com/dusk-network/dusk-poseidon-merkle).
+
+## Changes
+[CHANGELOG](CHANGELOG.md)
 
 ## License
 

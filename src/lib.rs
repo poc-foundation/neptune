@@ -5,11 +5,11 @@ extern crate lazy_static;
 
 pub use crate::poseidon::{Arity, Poseidon};
 use crate::round_constants::generate_constants;
+pub use bellperson::bls::Fr as Scalar;
+use bellperson::bls::FrRepr;
 pub use error::Error;
 use ff::{Field, PrimeField, ScalarEngine};
 use generic_array::GenericArray;
-pub use paired::bls12_381::Fr as Scalar;
-use paired::bls12_381::FrRepr;
 
 /// Poseidon circuit
 pub mod circuit;
@@ -23,6 +23,9 @@ mod poseidon_alt;
 mod preprocessing;
 mod round_constants;
 
+/// Hash types and domain separation tags.
+pub mod hash_type;
+
 /// Tree Builder
 #[cfg(feature = "gpu")]
 pub mod tree_builder;
@@ -34,6 +37,9 @@ pub mod column_tree_builder;
 #[cfg(feature = "gpu")]
 mod gpu;
 
+#[cfg(feature = "gpu")]
+pub mod cl;
+
 /// Batch Hasher
 #[cfg(feature = "gpu")]
 pub mod batch_hasher;
@@ -42,7 +48,7 @@ pub(crate) const TEST_SEED: [u8; 16] = [
     0x59, 0x62, 0xbe, 0x5d, 0x76, 0x3d, 0x31, 0x8d, 0x17, 0xdb, 0x37, 0x32, 0x54, 0x06, 0xbc, 0xe5,
 ];
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, PartialEq)]
 pub enum Strength {
     Standard,
     Strengthened,
@@ -88,8 +94,8 @@ fn round_numbers_base(arity: usize) -> (usize, usize) {
     let partial_rounds = match width {
         2 | 3 => 55,
         4 | 5 | 6 | 7 => 56,
-        8 | 9 | 10 | 11 | 12 => 57,
-        17 | 25 => 59,
+        8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 => 57,
+        16 | 17 | 25 => 59,
         37 => 60,
         65 => 61,
         _ => panic!(format!("unsupported arity, {}", arity)),
@@ -162,11 +168,10 @@ pub(crate) fn quintic_s_box<E: ScalarEngine>(
     if let Some(x) = pre_add {
         l.add_assign(x);
     }
-    let c = *l;
     let mut tmp = l.clone();
-    tmp.mul_assign(&c);
-    tmp.mul_assign(&tmp.clone());
-    l.mul_assign(&tmp);
+    tmp.square(); // l^2
+    tmp.square(); // l^4
+    l.mul_assign(&tmp); // l^5
     if let Some(x) = post_add {
         l.add_assign(x);
     }

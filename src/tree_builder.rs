@@ -2,9 +2,11 @@ use crate::batch_hasher::{Batcher, BatcherType};
 use crate::error::Error;
 use crate::poseidon::{Poseidon, PoseidonConstants};
 use crate::{Arity, BatchHasher};
+use bellperson::bls::{Bls12, Fr};
 use ff::Field;
 use generic_array::GenericArray;
-use paired::bls12_381::{Bls12, Fr};
+#[cfg(all(feature = "gpu", not(target_os = "macos")))]
+use rust_gpu_tools::opencl::GPUSelector;
 
 pub trait TreeBuilderTrait<TreeArity>
 where
@@ -16,7 +18,7 @@ where
     fn reset(&mut self);
 }
 
-pub struct TreeBuilder<'a, TreeArity>
+pub struct TreeBuilder<TreeArity>
 where
     TreeArity: Arity<Fr>,
 {
@@ -25,13 +27,13 @@ where
     /// Index of the first unfilled datum.
     fill_index: usize,
     tree_constants: PoseidonConstants<Bls12, TreeArity>,
-    tree_batcher: Option<Batcher<'a, TreeArity>>,
+    tree_batcher: Option<Batcher<TreeArity>>,
     rows_to_discard: usize,
     max_tree_batch_size: usize,
     t: Option<BatcherType>,
 }
 
-impl<TreeArity> TreeBuilderTrait<TreeArity> for TreeBuilder<'_, TreeArity>
+impl<TreeArity> TreeBuilderTrait<TreeArity> for TreeBuilder<TreeArity>
 where
     TreeArity: Arity<Fr>,
 {
@@ -83,7 +85,7 @@ fn as_generic_arrays<'a, A: Arity<Fr>>(vec: &'a [Fr]) -> &'a [GenericArray<Fr, A
     }
 }
 
-impl<TreeArity> TreeBuilder<'_, TreeArity>
+impl<TreeArity> TreeBuilder<TreeArity>
 where
     TreeArity: Arity<Fr>,
 {
@@ -251,12 +253,13 @@ where
     }
 }
 
+#[cfg(all(feature = "gpu", not(target_os = "macos")))]
 #[cfg(test)]
 mod tests {
     use super::*;
+    use bellperson::bls::Fr;
     use ff::Field;
     use generic_array::typenum::U8;
-    use paired::bls12_381::Fr;
 
     #[test]
     fn test_tree_builder() {
@@ -278,9 +281,13 @@ mod tests {
         let batch_size = leaves / num_batches;
 
         for rows_to_discard in 0..3 {
-            let mut builder =
-                TreeBuilder::<U8>::new(batcher_type, leaves, max_tree_batch_size, rows_to_discard)
-                    .unwrap();
+            let mut builder = TreeBuilder::<U8>::new(
+                batcher_type.clone(),
+                leaves,
+                max_tree_batch_size,
+                rows_to_discard,
+            )
+            .unwrap();
 
             // Simplify computing the expected root.
             let constant_element = Fr::zero();

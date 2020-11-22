@@ -8,12 +8,19 @@ license = "MIT OR Apache-2.0"
 
 [dependencies]
 lazy_static = "1.4.0"
+bellperson = { path = "../bellman", version = "0.12", default-features = false }
 blake2s_simd = "0.5"
 byteorder = "1"
 env_logger = "0.7.1"
 ff = { version = "0.2.1", package = "fff" }
-generic-array = "0.13.2"
+generic-array = "0.14.4"
 log = "0.4.8"
-paired = "0.20.0"
-neptune = { path = "../", features=["gpu"] }
-rayon = "1.0.0"
+neptune = { path = "../", default-features = false, features=["gpu"] }
+rust-gpu-tools = { version = "0.3.0", optional = true }
+structopt = { version = "0.3", default-features = false }
+
+[features]
+default = ["pairing", "gpu"]
+gpu = ["neptune/gpu", "rust-gpu-tools"]
+pairing = ["neptune/pairing", "bellperson/pairing"]
+blst = ["neptune/blst", "bellperson/blst"]

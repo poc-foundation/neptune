@@ -1,7 +1,7 @@
 [package]
 name = "neptune"
 description = "Poseidon hashing over BLS12-381 for Filecoin."
-version = "2.0.0"
+version = "2.4.0"
 authors = ["porcuquine <porcuquine@gmail.com>"]
 edition = "2018"
 license = "MIT OR Apache-2.0"
@@ -9,25 +9,25 @@ repository = "https://github.com/porcuquine/poseidon"
 
 [dependencies]
 lazy_static = "1.4.0"
-bellperson = { path = "../bellman"}
+bellperson = { path = "../bellman", version = "0.12", default-features = false }
 blake2s_simd = "0.5"
 byteorder = "1"
 ff = { version = "0.2.1", package = "fff" }
-generic-array = "0.13.2"
-paired = "0.20.0"
-triton = { path = "../neptune-triton/library/neptune-triton", package = "neptune-triton",  default-features=false, features=["opencl"], optional=true }
+generic-array = "0.14.4"
 log = "0.4.8"
+rust-gpu-tools = { version = "0.3.0", optional = true }
+triton = { path = "../neptune-triton/library/neptune-triton", version = "2.1.0", package = "neptune-triton", default-features = false, features = ["opencl"], optional = true }
 
 [dev-dependencies]
 criterion = "0.3"
 rand = "0.7.0"
-sha2 = "0.8"
+sha2 = "0.9"
 tempdir = "0.3"
 rand_xorshift = "0.2.0"
 serde_json = "1.0.53"
 
 [build-dependencies]
-paired = "0.20.0"
+bellperson = { version = "0.12", default-features = false }
 ff = { version = "0.2.1", package = "fff" }
 
 [[bench]]
@@ -43,4 +43,12 @@ incremental = false
 codegen-units = 1
 
 [features]
-gpu = ["triton"]
+default = ["pairing"]
+gpu = ["triton", "rust-gpu-tools"]
+pairing = ["bellperson/pairing"]
+blst = ["bellperson/blst"]
+
+[workspace]
+members = [
+  "gbench",
+]
